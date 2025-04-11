@@ -1,4 +1,4 @@
-module jesse-rb/imissphp-go
+module github.com/jesse-rb/imissphp-go
 
 go 1.23.3
 
