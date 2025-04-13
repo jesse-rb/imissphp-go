@@ -39,6 +39,9 @@ func normalizeReflectType(data reflect.Type) reflect.Type {
 	return data
 }
 
+// Gets the name of the supplied value's type.
+// The i parameter can be either a value or a pointer to a value.
+// This function returns the string name of the supplied value's type.
 func TypeName(i interface{}) string {
 	data := reflect.TypeOf(i)
 
@@ -47,6 +50,10 @@ func TypeName(i interface{}) string {
 	return data.Name()
 }
 
+// MethodExists checks if a method with the given name exists on a type.
+// The i parameter can be either a value or a pointer to a value.
+// The methodName can refer to a method with either a value receiver or a pointer receiver.
+// The function returns true if the method exists on either the value or its pointer type.
 func MethodExists(i interface{}, methodName string) bool {
 	data := reflect.TypeOf(i)
 
