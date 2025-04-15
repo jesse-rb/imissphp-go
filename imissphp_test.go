@@ -1,4 +1,4 @@
-package imissphpgo
+package imissphp
 
 import (
 	"log"

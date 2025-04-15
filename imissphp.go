@@ -1,4 +1,4 @@
-package imissphpgo
+package imissphp
 
 // A pacakge for common functions that I cannot find in the standard library
 
