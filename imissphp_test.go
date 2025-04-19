@@ -1,6 +1,7 @@
 package imissphp
 
 import (
+	"encoding/json"
 	"log"
 	"testing"
 	"time"
@@ -79,5 +80,41 @@ func TestMethodExists(t *testing.T) {
 
 	if MethodExists(testStructB, testMethodB2) == true {
 		t.Fatalf("Did not expect method %s to exist on struct %s", testMethodB2, TypeName(testStructB))
+	}
+}
+
+func TestToMap(t *testing.T) {
+	type structA struct {
+		ID        int    `json:"id"`
+		Name      string `json:"name"`
+		Words     []string
+		isPrivate bool
+	}
+
+	inA := structA{
+		ID:        3,
+		Name:      "John",
+		Words:     []string{"Hello", "there"},
+		isPrivate: true,
+	}
+
+	expectedA := map[string]any{
+		"id":    3,
+		"name":  "John",
+		"Words": []string{"Hello", "there"},
+	}
+
+	expectedJsonA, err := json.Marshal(expectedA)
+	if err != nil {
+		t.Fatalf("Error converting expected map to json: %#v", err)
+	}
+
+	testJsonA, err := json.Marshal(ToMap(inA))
+	if err != nil {
+		t.Fatalf("Error converting test map to json: %#v", err)
+	}
+
+	if string(expectedJsonA) != string(testJsonA) {
+		t.Fatalf("Expected JSON: %#v, got JSON: %#v", string(expectedJsonA), string(testJsonA))
 	}
 }

@@ -3,6 +3,7 @@ package imissphp
 // A pacakge for common functions that I cannot find in the standard library
 
 import (
+	"encoding/json"
 	"reflect"
 	"unicode"
 )
@@ -65,3 +66,31 @@ func MethodExists(i interface{}, methodName string) bool {
 
 	return hasMethod || ptrHasMethod
 }
+
+// Converts any into a map[string]any.
+// Useful to convert stucts into map[string]any, e.g. when using the gin.GinH type from the https://github.com/gin-gonic/gin framework.
+// If the function fails to make the conversion, an empty map[string]any{} value is returend.
+// Returns data converted to map[string]any by calling json.Marshal on data, so that json struct tags are respected,
+// then unmarshalling into a map[string]any
+func ToMap(data any) map[string]any {
+	// Marshal the struct into JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return map[string]any{}
+	}
+
+	// Unmarshal the JSON into a map
+	var result map[string]any
+	err = json.Unmarshal(jsonData, &result)
+	if err != nil {
+		return map[string]any{}
+	}
+
+	return result
+}
+
+// func FlattenMap(map[string]any) map[string]any {
+// }
+//
+// func UnFlattenMap(map[string]any) map[string]any {
+// }
