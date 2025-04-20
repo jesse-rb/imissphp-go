@@ -161,11 +161,31 @@ func TestFlattenMap(t *testing.T) {
 	}
 
 	debug := ToMap(inA)
-	debug2, _ := FlattenMap(debug, "")
+	debug2 := FlattenMap(debug, "")
 	fmt.Printf("map:\n%#v\n", debug)
 	fmt.Printf("flattened map:\n%#v\n", debug2)
 
-	// testA := FlattenMap(ToMap(inA), "")
+	testA := FlattenMap(ToMap(inA), "")
 
-	// fmt.Printf("%#v\n", testA)
+	fmt.Printf("%#v\n", testA)
+}
+
+func TestUnFlattenMap(t *testing.T) {
+	inA := map[string]any{
+		"user.canvas.id":          1,
+		"user.canvas.name":        "my canvas",
+		"user.canvas.points.0.id": 1,
+		"user.canvas.points.0.x":  23,
+		"user.canvas.points.0.y":  45,
+		"user.canvas.points.1.id": 2,
+		"user.canvas.points.1.x":  34,
+		"user.canvas.points.1.y":  94,
+		"user.canvas.points.2.id": 3,
+		"user.canvas.points.2.x":  89,
+		"user.canvas.points.2.y":  90,
+	}
+
+	testA := UnFlattenMap(inA)
+
+	fmt.Printf("unflattened:\n%#v\n", testA)
 }

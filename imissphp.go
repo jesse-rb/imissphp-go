@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -94,6 +95,7 @@ func MethodExists(i interface{}, methodName string) bool {
 // Recursively converts a value of type `any` into a map[string]... structure.
 // Slices and arrays are converted to map[string]... as well with the index used as a string key.
 // Structs are converted using json.Marshal so that json struct tags are used.
+// If value is not a map, struct, slice, or array then an empty map `map[string]any{}` is returned
 func ToMap(value any) map[string]any {
 	// Get the type of the value
 	val := reflect.ValueOf(value)
@@ -172,7 +174,7 @@ func ToMap(value any) map[string]any {
 
 		return result
 	} else {
-		// Something wrong happened if we end up here, or a value that cannot be processed was passed in
+		// The value passed in cannot be processed, return empty map
 		return map[string]any{}
 	}
 }
@@ -188,12 +190,8 @@ func IsMap(value any) bool {
 }
 
 // Flatten a map[string]any
-func FlattenMap(node map[string]any, key string) (map[string]any, error) {
+func FlattenMap(node map[string]any, key string) map[string]any {
 	flattened := map[string]any{}
-
-	if !IsCollection(node) && !IsMap(node) {
-		return nil, fmt.Errorf("expected node to be iterable")
-	}
 
 	// Iterate over map keys/values
 	for k, v := range node {
@@ -208,19 +206,40 @@ func FlattenMap(node map[string]any, key string) (map[string]any, error) {
 		if isLeaf {
 			flattened[flattenedKey] = v
 		} else {
-			subFlattened, err := FlattenMap(mapV, flattenedKey)
-			if err != nil {
-				return nil, err
-			}
+			subFlattened := FlattenMap(mapV, flattenedKey)
 			for _k, _v := range subFlattened {
 				flattened[_k] = _v
 			}
 		}
 	}
 
-	return flattened, nil
+	return flattened
 }
 
 // Unflatten a map[string]any
-// func UnFlattenMap(map[string]any) map[string]any {
-// }
+func UnFlattenMap(node map[string]any) map[string]any {
+	result := map[string]any{}
+
+	for k, v := range node {
+		keys := strings.Split(k, ".")
+
+		curr := result
+
+		fmt.Println(k)
+		fmt.Printf("%#v\n", v)
+		for i, key := range keys {
+			fmt.Println(key)
+			if i >= len(keys)-1 {
+				curr[key] = v
+			} else {
+				_, exists := curr[key]
+				if !exists {
+					curr[key] = map[string]any{}
+				}
+				curr, _ = curr[key].(map[string]any)
+			}
+		}
+	}
+
+	return result
+}
