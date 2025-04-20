@@ -225,10 +225,7 @@ func UnFlattenMap(node map[string]any) map[string]any {
 
 		curr := result
 
-		fmt.Println(k)
-		fmt.Printf("%#v\n", v)
 		for i, key := range keys {
-			fmt.Println(key)
 			if i >= len(keys)-1 {
 				curr[key] = v
 			} else {

@@ -2,7 +2,6 @@ package imissphp
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -138,36 +137,32 @@ func TestFlattenMap(t *testing.T) {
 		Greeting string
 	}
 
-	inA := Person{
-		Name: "John",
-		Age:  28,
-		Pets: []Pet{
-			{
-				Kind: "dog",
-				FavoriteToy: Toy{
-					Prefix: "alt",
-					Code:   "BD8340F",
-				},
-			},
-			{
-				Kind: "cat",
-				FavoriteToy: Toy{
-					Prefix: "tab",
-					Code:   "LS9238W",
-				},
-			},
-		},
-		Greeting: "Hello there",
-	}
+	// inA := Person{
+	// 	Name: "John",
+	// 	Age:  28,
+	// 	Pets: []Pet{
+	// 		{
+	// 			Kind: "dog",
+	// 			FavoriteToy: Toy{
+	// 				Prefix: "alt",
+	// 				Code:   "BD8340F",
+	// 			},
+	// 		},
+	// 		{
+	// 			Kind: "cat",
+	// 			FavoriteToy: Toy{
+	// 				Prefix: "tab",
+	// 				Code:   "LS9238W",
+	// 			},
+	// 		},
+	// 	},
+	// 	Greeting: "Hello there",
+	// }
 
-	debug := ToMap(inA)
-	debug2 := FlattenMap(debug, "")
-	fmt.Printf("map:\n%#v\n", debug)
-	fmt.Printf("flattened map:\n%#v\n", debug2)
-
-	testA := FlattenMap(ToMap(inA), "")
-
-	fmt.Printf("%#v\n", testA)
+	// debug := ToMap(inA)
+	// debug2 := FlattenMap(debug, "")
+	//
+	// testA := FlattenMap(ToMap(inA), "")
 }
 
 func TestUnFlattenMap(t *testing.T) {
@@ -187,5 +182,18 @@ func TestUnFlattenMap(t *testing.T) {
 
 	testA := UnFlattenMap(inA)
 
-	fmt.Printf("unflattened:\n%#v\n", testA)
+	actualNumProperties := len(testA)
+	if len(testA) != 1 {
+		t.Fatalf("Expected: 1 property, got: %v properties", actualNumProperties)
+	}
+
+	actualNumProperties = len(testA["user"].(map[string]any))
+	if len(testA["user"].(map[string]any)) != 1 {
+		t.Fatalf("Expected: 1 property, got: %v properties", actualNumProperties)
+	}
+
+	actualNumProperties = len(testA["user"].(map[string]any)["canvas"].(map[string]any))
+	if len(testA["user"].(map[string]any)["canvas"].(map[string]any)) != 3 {
+		t.Fatalf("Expected: 1 property, got: %v properties", actualNumProperties)
+	}
 }
