@@ -2,6 +2,7 @@ package imissphp
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -101,7 +102,7 @@ func TestToMap(t *testing.T) {
 	expectedA := map[string]any{
 		"id":    3,
 		"name":  "John",
-		"Words": []string{"Hello", "there"},
+		"Words": map[string]string{"0": "Hello", "1": "there"},
 	}
 
 	expectedJsonA, err := json.Marshal(expectedA)
@@ -117,4 +118,54 @@ func TestToMap(t *testing.T) {
 	if string(expectedJsonA) != string(testJsonA) {
 		t.Fatalf("Expected JSON: %#v, got JSON: %#v", string(expectedJsonA), string(testJsonA))
 	}
+}
+
+func TestFlattenMap(t *testing.T) {
+	type Toy struct {
+		Prefix string
+		Code   string
+	}
+
+	type Pet struct {
+		Kind        string
+		FavoriteToy Toy
+	}
+
+	type Person struct {
+		Name     string
+		Age      int
+		Pets     []Pet
+		Greeting string
+	}
+
+	inA := Person{
+		Name: "John",
+		Age:  28,
+		Pets: []Pet{
+			{
+				Kind: "dog",
+				FavoriteToy: Toy{
+					Prefix: "alt",
+					Code:   "BD8340F",
+				},
+			},
+			{
+				Kind: "cat",
+				FavoriteToy: Toy{
+					Prefix: "tab",
+					Code:   "LS9238W",
+				},
+			},
+		},
+		Greeting: "Hello there",
+	}
+
+	debug := ToMap(inA)
+	debug2, _ := FlattenMap(debug, "")
+	fmt.Printf("map:\n%#v\n", debug)
+	fmt.Printf("flattened map:\n%#v\n", debug2)
+
+	// testA := FlattenMap(ToMap(inA), "")
+
+	// fmt.Printf("%#v\n", testA)
 }
