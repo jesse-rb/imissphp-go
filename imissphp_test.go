@@ -85,38 +85,115 @@ func TestMethodExists(t *testing.T) {
 }
 
 func TestToMap(t *testing.T) {
-	type structA struct {
-		ID        int    `json:"id"`
-		Name      string `json:"name"`
-		Words     []string
-		isPrivate bool
+	type innerStruct struct {
+		FieldA string `json:"field_a"`
+		FieldB int    `json:"field_b"`
 	}
 
-	inA := structA{
-		ID:        3,
-		Name:      "John",
-		Words:     []string{"Hello", "there"},
-		isPrivate: true,
+	type testStruct struct {
+		ID      int         `json:"id"`
+		Name    string      `json:"name"`
+		Details innerStruct `json:"details"`
+		Tags    []string    `json:"tags"`
+		Numbers [2]int      `json:"numbers"`
+		private string      // unexported field
 	}
 
-	expectedA := map[string]any{
-		"id":    3,
-		"name":  "John",
-		"Words": map[string]string{"0": "Hello", "1": "there"},
+	tests := []struct {
+		name     string
+		input    any
+		expected map[string]any
+	}{
+		{
+			name: "basic struct with nested struct and slice",
+			input: testStruct{
+				ID:   1,
+				Name: "Alice",
+				Details: innerStruct{
+					FieldA: "abc",
+					FieldB: 123,
+				},
+				Tags:    []string{"go", "dev"},
+				Numbers: [2]int{7, 8},
+				private: "should be ignored",
+			},
+			expected: map[string]any{
+				"id":   1,
+				"name": "Alice",
+				"details": map[string]any{
+					"field_a": "abc",
+					"field_b": 123,
+				},
+				"tags": map[string]any{
+					"0": "go",
+					"1": "dev",
+				},
+				"numbers": map[string]any{
+					"0": 7,
+					"1": 8,
+				},
+			},
+		},
+		{
+			name:  "plain slice input",
+			input: []int{10, 20, 30},
+			expected: map[string]any{
+				"0": 10,
+				"1": 20,
+				"2": 30,
+			},
+		},
+		{
+			name:  "plain array input",
+			input: [3]string{"a", "b", "c"},
+			expected: map[string]any{
+				"0": "a",
+				"1": "b",
+				"2": "c",
+			},
+		},
+		{
+			name: "simple map[string]any",
+			input: map[string]any{
+				"foo": 42,
+				"bar": "baz",
+			},
+			expected: map[string]any{
+				"foo": 42,
+				"bar": "baz",
+			},
+		},
+		{
+			name:     "non-convertible value (int)",
+			input:    123,
+			expected: map[string]any{},
+		},
+		{
+			name:     "nil input",
+			input:    nil,
+			expected: map[string]any{},
+		},
 	}
 
-	expectedJsonA, err := json.Marshal(expectedA)
-	if err != nil {
-		t.Fatalf("Error converting expected map to json: %#v", err)
-	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ToMap(tc.input)
 
-	testJsonA, err := json.Marshal(ToMap(inA))
-	if err != nil {
-		t.Fatalf("Error converting test map to json: %#v", err)
-	}
+			// Compare JSON since the function's use of JSON.Marshal not preserve exact types
+			expectedJSON, err := json.Marshal(tc.expected)
+			if err != nil {
+				t.Fatalf("error marshaling expected: %v", err)
+			}
 
-	if string(expectedJsonA) != string(testJsonA) {
-		t.Fatalf("Expected JSON: %#v, got JSON: %#v", string(expectedJsonA), string(testJsonA))
+			gotJSON, err := json.Marshal(got)
+			if err != nil {
+				t.Fatalf("error marshaling result: %v", err)
+			}
+
+			if string(expectedJSON) != string(gotJSON) {
+				t.Errorf("Test %s failed\nExpected JSON: %s\nGot JSON: %s", tc.name, string(expectedJSON), string(gotJSON))
+			}
+		})
 	}
 }
 
