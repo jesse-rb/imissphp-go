@@ -3,6 +3,7 @@ package imissphp
 import (
 	"encoding/json"
 	"log"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -120,80 +121,167 @@ func TestToMap(t *testing.T) {
 }
 
 func TestFlattenMap(t *testing.T) {
-	type Toy struct {
-		Prefix string
-		Code   string
+	tests := []struct {
+		name     string
+		input    map[string]any
+		prefix   string
+		expected map[string]any
+	}{
+		{
+			name: "simple nested map",
+			input: map[string]any{
+				"user": map[string]any{
+					"id":   3,
+					"name": "john",
+				},
+			},
+			prefix: "",
+			expected: map[string]any{
+				"user.id":   3,
+				"user.name": "john",
+			},
+		},
+		{
+			name: "nested map with prefix",
+			input: map[string]any{
+				"user": map[string]any{
+					"details": map[string]any{
+						"age":  30,
+						"city": "Paris",
+					},
+				},
+			},
+			prefix: "",
+			expected: map[string]any{
+				"user.details.age":  30,
+				"user.details.city": "Paris",
+			},
+		},
+		{
+			name: "flat map with prefix",
+			input: map[string]any{
+				"id":   1,
+				"name": "Alice",
+			},
+			prefix: "profile",
+			expected: map[string]any{
+				"profile.id":   1,
+				"profile.name": "Alice",
+			},
+		},
+		{
+			name: "deeply nested map",
+			input: map[string]any{
+				"a": map[string]any{
+					"b": map[string]any{
+						"c": map[string]any{
+							"d": 42,
+						},
+					},
+				},
+			},
+			prefix: "",
+			expected: map[string]any{
+				"a.b.c.d": 42,
+			},
+		},
 	}
 
-	type Pet struct {
-		Kind        string
-		FavoriteToy Toy
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := FlattenMap(tc.input, tc.prefix)
+			if !reflect.DeepEqual(got, tc.expected) {
+				t.Errorf("FlattenMap() = %v, expected %v", got, tc.expected)
+			}
+		})
 	}
-
-	type Person struct {
-		Name     string
-		Age      int
-		Pets     []Pet
-		Greeting string
-	}
-
-	// inA := Person{
-	// 	Name: "John",
-	// 	Age:  28,
-	// 	Pets: []Pet{
-	// 		{
-	// 			Kind: "dog",
-	// 			FavoriteToy: Toy{
-	// 				Prefix: "alt",
-	// 				Code:   "BD8340F",
-	// 			},
-	// 		},
-	// 		{
-	// 			Kind: "cat",
-	// 			FavoriteToy: Toy{
-	// 				Prefix: "tab",
-	// 				Code:   "LS9238W",
-	// 			},
-	// 		},
-	// 	},
-	// 	Greeting: "Hello there",
-	// }
-
-	// debug := ToMap(inA)
-	// debug2 := FlattenMap(debug, "")
-	//
-	// testA := FlattenMap(ToMap(inA), "")
 }
 
 func TestUnFlattenMap(t *testing.T) {
-	inA := map[string]any{
-		"user.canvas.id":          1,
-		"user.canvas.name":        "my canvas",
-		"user.canvas.points.0.id": 1,
-		"user.canvas.points.0.x":  23,
-		"user.canvas.points.0.y":  45,
-		"user.canvas.points.1.id": 2,
-		"user.canvas.points.1.x":  34,
-		"user.canvas.points.1.y":  94,
-		"user.canvas.points.2.id": 3,
-		"user.canvas.points.2.x":  89,
-		"user.canvas.points.2.y":  90,
+	tests := []struct {
+		name     string
+		input    map[string]any
+		expected map[string]any
+	}{
+		{
+			name: "simple unflatten",
+			input: map[string]any{
+				"user.id":   3,
+				"user.name": "john",
+			},
+			expected: map[string]any{
+				"user": map[string]any{
+					"id":   3,
+					"name": "john",
+				},
+			},
+		},
+		{
+			name: "nested unflatten",
+			input: map[string]any{
+				"user.details.age":  30,
+				"user.details.city": "Paris",
+			},
+			expected: map[string]any{
+				"user": map[string]any{
+					"details": map[string]any{
+						"age":  30,
+						"city": "Paris",
+					},
+				},
+			},
+		},
+		{
+			name: "flat map stays the same",
+			input: map[string]any{
+				"id":   1,
+				"name": "Alice",
+			},
+			expected: map[string]any{
+				"id":   1,
+				"name": "Alice",
+			},
+		},
+		{
+			name: "deeply nested keys",
+			input: map[string]any{
+				"a.b.c.d": 42,
+			},
+			expected: map[string]any{
+				"a": map[string]any{
+					"b": map[string]any{
+						"c": map[string]any{
+							"d": 42,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "multiple root keys",
+			input: map[string]any{
+				"user.name":     "Bob",
+				"user.age":      25,
+				"location.city": "Berlin",
+			},
+			expected: map[string]any{
+				"user": map[string]any{
+					"name": "Bob",
+					"age":  25,
+				},
+				"location": map[string]any{
+					"city": "Berlin",
+				},
+			},
+		},
 	}
 
-	testA := UnFlattenMap(inA)
-
-	actualNumProperties := len(testA)
-	if len(testA) != 1 {
-		t.Fatalf("Expected: 1 property, got: %v properties", actualNumProperties)
-	}
-
-	actualNumProperties = len(testA["user"].(map[string]any))
-	if len(testA["user"].(map[string]any)) != 1 {
-		t.Fatalf("Expected: 1 property, got: %v properties", actualNumProperties)
-	}
-
-	actualNumProperties = len(testA["user"].(map[string]any)["canvas"].(map[string]any))
-	if len(testA["user"].(map[string]any)["canvas"].(map[string]any)) != 3 {
-		t.Fatalf("Expected: 1 property, got: %v properties", actualNumProperties)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := UnFlattenMap(tc.input)
+			if !reflect.DeepEqual(got, tc.expected) {
+				t.Errorf("UnFlattenMap() = %v, expected %v", got, tc.expected)
+			}
+		})
 	}
 }

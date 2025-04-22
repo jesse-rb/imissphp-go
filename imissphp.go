@@ -70,28 +70,6 @@ func MethodExists(i interface{}, methodName string) bool {
 	return hasMethod || ptrHasMethod
 }
 
-// // Converts any into a map[string]any.
-// // Useful to convert stucts into map[string]any, e.g. when using the gin.GinH type from the https://github.com/gin-gonic/gin framework.
-// // If the function fails to make the conversion, an empty map[string]any{} value is returend.
-// // Returns data converted to map[string]any by calling json.Marshal on data, so that json struct tags are respected,
-// // then unmarshalling into a map[string]any
-// func ToMap(data any) map[string]any {
-// 	// Marshal data into JSON
-// 	jsonData, err := json.Marshal(data)
-// 	if err != nil {
-// 		return map[string]any{}
-// 	}
-//
-// 	// Unmarshal the JSON into a map
-// 	var result map[string]any
-// 	err = json.Unmarshal(jsonData, &result)
-// 	if err != nil {
-// 		return map[string]any{}
-// 	}
-//
-// 	return result
-// }
-
 // Recursively converts a value of type `any` into a map[string]... structure.
 // Slices and arrays are converted to map[string]... as well with the index used as a string key.
 // Structs are converted using json.Marshal so that json struct tags are used.
@@ -177,16 +155,6 @@ func ToMap(value any) map[string]any {
 		// The value passed in cannot be processed, return empty map
 		return map[string]any{}
 	}
-}
-
-func IsCollection(value any) bool {
-	kind := reflect.TypeOf(value).Kind()
-	return kind == reflect.Array || kind == reflect.Slice
-}
-
-func IsMap(value any) bool {
-	kind := reflect.TypeOf(value).Kind()
-	return kind == reflect.Map
 }
 
 // Flatten a map[string]any
