@@ -158,30 +158,37 @@ func ToMap(value any) map[string]any {
 }
 
 // Flatten a map[string]any
-func FlattenMap(node map[string]any, key string) map[string]any {
-	flattened := map[string]any{}
+func FlattenMap(node map[string]any) map[string]any {
+	var _flattenMap func(node map[string]any, key string) map[string]any
 
-	// Iterate over map keys/values
-	for k, v := range node {
-		mapV, isMap := v.(map[string]any)
-		isLeaf := !isMap
+	// Use an internal function for recursion to avoid passing in an empty string to outer function
+	_flattenMap = func(node map[string]any, key string) map[string]any {
+		flattened := map[string]any{}
 
-		flattenedKey := fmt.Sprintf("%s.%s", key, k)
-		if key == "" {
-			flattenedKey = k
-		}
+		// Iterate over map keys/values
+		for k, v := range node {
+			mapV, isMap := v.(map[string]any)
+			isLeaf := !isMap
 
-		if isLeaf {
-			flattened[flattenedKey] = v
-		} else {
-			subFlattened := FlattenMap(mapV, flattenedKey)
-			for _k, _v := range subFlattened {
-				flattened[_k] = _v
+			flattenedKey := fmt.Sprintf("%s.%s", key, k)
+			if key == "" {
+				flattenedKey = k
+			}
+
+			if isLeaf {
+				flattened[flattenedKey] = v
+			} else {
+				subFlattened := _flattenMap(mapV, flattenedKey)
+				for _k, _v := range subFlattened {
+					flattened[_k] = _v
+				}
 			}
 		}
+
+		return flattened
 	}
 
-	return flattened
+	return _flattenMap(node, "")
 }
 
 // Unflatten a map[string]any

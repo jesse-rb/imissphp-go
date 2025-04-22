@@ -201,7 +201,6 @@ func TestFlattenMap(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    map[string]any
-		prefix   string
 		expected map[string]any
 	}{
 		{
@@ -212,7 +211,6 @@ func TestFlattenMap(t *testing.T) {
 					"name": "john",
 				},
 			},
-			prefix: "",
 			expected: map[string]any{
 				"user.id":   3,
 				"user.name": "john",
@@ -228,22 +226,9 @@ func TestFlattenMap(t *testing.T) {
 					},
 				},
 			},
-			prefix: "",
 			expected: map[string]any{
 				"user.details.age":  30,
 				"user.details.city": "Paris",
-			},
-		},
-		{
-			name: "flat map with prefix",
-			input: map[string]any{
-				"id":   1,
-				"name": "Alice",
-			},
-			prefix: "profile",
-			expected: map[string]any{
-				"profile.id":   1,
-				"profile.name": "Alice",
 			},
 		},
 		{
@@ -257,7 +242,6 @@ func TestFlattenMap(t *testing.T) {
 					},
 				},
 			},
-			prefix: "",
 			expected: map[string]any{
 				"a.b.c.d": 42,
 			},
@@ -266,7 +250,7 @@ func TestFlattenMap(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := FlattenMap(tc.input, tc.prefix)
+			got := FlattenMap(tc.input)
 			if !reflect.DeepEqual(got, tc.expected) {
 				t.Errorf("FlattenMap() = %v, expected %v", got, tc.expected)
 			}
