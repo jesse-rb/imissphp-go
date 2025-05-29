@@ -34,42 +34,6 @@ func InArray[T comparable](val T, list []T) bool {
 	return false
 }
 
-// Normalize a reflect.Type by returning the element type if it is a pointer
-func normalizeReflectType(data reflect.Type) reflect.Type {
-	if data.Kind() == reflect.Pointer {
-		data = data.Elem()
-	}
-
-	return data
-}
-
-// Gets the name of the supplied value's type.
-// The i parameter can be either a value or a pointer to a value.
-// This function returns the string name of the supplied value's type.
-func TypeName(i interface{}) string {
-	data := reflect.TypeOf(i)
-
-	data = normalizeReflectType(data)
-
-	return data.Name()
-}
-
-// MethodExists checks if a method with the given name exists on a type.
-// The i parameter can be either a value or a pointer to a value.
-// The methodName can refer to a method with either a value receiver or a pointer receiver.
-// The function returns true if the method exists on either the value or its pointer type.
-func MethodExists(i interface{}, methodName string) bool {
-	data := reflect.TypeOf(i)
-
-	data = normalizeReflectType(data)
-
-	// Checks for MyStruct{}.MyMethod OR *MyStruct{}.MyMethod
-	_, hasMethod := data.MethodByName(methodName)
-	_, ptrHasMethod := reflect.PointerTo(data).MethodByName(methodName)
-
-	return hasMethod || ptrHasMethod
-}
-
 // Recursively converts a value of type `any` into a map[string]... structure.
 // Slices and arrays are converted to map[string]... as well with the index used as a string key.
 // Structs are converted using json.Marshal so that json struct tags are used.
@@ -214,4 +178,28 @@ func UnFlattenMap(node map[string]any) map[string]any {
 	}
 
 	return result
+}
+
+// Get values in map as slice
+// NOTE: Because maps are not ordered, the returned slice is unordered
+func MapValues[K comparable, V any](m map[K]V) []V {
+	s := make([]V, 0, len(m))
+
+	for _, value := range m {
+		s = append(s, value)
+	}
+
+	return s
+}
+
+// Get keys in map as slice
+// NOTE: Because maps are not ordered, the returned slice is unordered
+func MapKeys[K comparable, V any](m map[K]V) []K {
+	s := make([]K, 0, len(m))
+
+	for key := range m {
+		s = append(s, key)
+	}
+
+	return s
 }
